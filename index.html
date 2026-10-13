@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北風學院 Boreas - 晤談主題排行榜</title>
+  <!-- Tailwind CSS -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.8); }
+    }
+    @keyframes windDrift {
+      0% { transform: translateX(-10%) translateY(0) rotate(0deg); opacity: 0; }
+      20% { opacity: 0.8; }
+      80% { opacity: 0.8; }
+      100% { transform: translateX(110vw) translateY(40px) rotate(360deg); opacity: 0; }
+    }
+    .mascot-bounce {
+      animation: float 3s ease-in-out infinite;
+    }
+    .frost-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .frost-card:hover {
+      transform: translateY(-5px) scale(1.02);
+    }
+    .card-locked {
+      background: linear-gradient(135deg, rgba(224, 242, 254, 0.9) 0%, rgba(186, 230, 253, 0.75) 100%);
+      border: 2px dashed #38bdf8;
+    }
+    .card-revealed {
+      background: linear-gradient(145deg, #ffffff 0%, #f0f9ff 100%);
+      border: 2px solid #38bdf8;
+      box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.25);
+    }
+    /* 遺珠專用樣式 */
+    .pearl-locked {
+      background: linear-gradient(135deg, rgba(255, 241, 242, 0.92) 0%, rgba(254, 226, 226, 0.8) 100%);
+      border: 2px dashed #fb7185;
+    }
+    .pearl-revealed {
+      background: linear-gradient(145deg, #ffffff 0%, #fff1f2 100%);
+      border: 2px solid #f43f5e;
+      box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.25);
+    }
+    .snow-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      animation: windDrift linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 text-slate-800 font-sans relative overflow-x-hidden selection:bg-sky-200">
+
+  <!-- 背景微風與雪花動態層 -->
+  <div id="wind-particles" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+  <!-- 主容器 -->
+  <div class="relative z-10 max-w-6xl mx-auto px-4 py-8">
+    
+    <!-- 頂部 Header & 北風吉祥物區 -->
+    <header class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/85 backdrop-blur-md p-6 rounded-3xl border border-sky-200 shadow-xl shadow-sky-100/50 mb-8">
+      
+      <!-- 吉祥物 & 學院品牌 -->
+      <div class="flex items-center gap-5">
+        <!-- 北風精靈 Boreas Mascot SVG -->
+        <div class="relative mascot-bounce cursor-pointer group" onclick="boreasCheer()" title="點點我，北風精靈為你吹拂好運！">
+          <div class="w-20 h-20 bg-gradient-to-tr from-sky-400 to-teal-300 rounded-full flex items-center justify-center shadow-lg shadow-sky-300/60 p-2">
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+              <path d="M 15 45 C 5 25, 25 15, 35 30 Z" fill="#bae6fd" />
+              <path d="M 85 45 C 95 25, 75 15, 65 30 Z" fill="#bae6fd" />
+              <circle cx="50" cy="52" r="38" fill="#ffffff" />
+              <circle cx="38" cy="48" r="4.5" fill="#0369a1" />
+              <circle cx="62" cy="48" r="4.5" fill="#0369a1" />
+              <circle cx="40" cy="46" r="1.5" fill="#ffffff" />
+              <circle cx="64" cy="46" r="1.5" fill="#ffffff" />
+              <ellipse cx="30" cy="56" rx="5" ry="3" fill="#f472b6" opacity="0.6" />
+              <ellipse cx="70" cy="56" rx="5" ry="3" fill="#f472b6" opacity="0.6" />
+              <path d="M 44 55 Q 50 63 56 55" stroke="#0369a1" stroke-width="2.5" fill="none" stroke-linecap="round" />
+              <path d="M 46 32 C 48 27, 54 27, 54 31 C 54 34, 50 34, 49 32" stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round" />
+              <polygon points="50,15 44,24 56,24" fill="#38bdf8" />
+            </svg>
+          </div>
+          <span class="absolute -bottom-1 -right-1 bg-sky-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full border-2 border-white shadow">Boreas</span>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 text-xs font-semibold bg-sky-100 text-sky-700 rounded-full border border-sky-300">🌬️ 北風學院 特企活動</span>
+            <span id="sound-btn" onclick="toggleSound()" class="cursor-pointer text-xs px-2.5 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center gap-1">
+              <span id="sound-icon">🔔</span> 音效開
+            </span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-black bg-gradient-to-r from-sky-600 via-teal-600 to-blue-700 bg-clip-text text-transparent mt-1">
+            晤談主題排行榜
+          </h1>
+          <p id="boreas-dialogue" class="text-xs md:text-sm text-slate-600 mt-1 flex items-center gap-1.5 transition-all duration-300">
+            <span>💬 北風精靈：</span>「呼呼～你知道家長最常帶著哪些困擾來找老師嗎？快點擊卡片揭曉吧！」
+          </p>
+        </div>
+      </div>
+
+      <!-- 計分板與進度區 -->
+      <div class="flex items-center gap-4 w-full md:w-auto justify-end">
+        <!-- 分數卡 -->
+        <div class="bg-gradient-to-b from-amber-50 to-orange-50 border-2 border-amber-300/80 rounded-2xl px-5 py-3 text-center min-w-[125px] shadow-md shadow-amber-100">
+          <div class="text-xs font-bold text-amber-700 uppercase tracking-wider">目前總分</div>
+          <div class="text-3xl font-black text-amber-600 flex items-center justify-center gap-1">
+            <span id="total-score">0</span>
+            <span id="max-score" class="text-xs text-amber-500 font-semibold">/ 58分</span>
+          </div>
+        </div>
+
+        <!-- 揭曉進度 -->
+        <div class="bg-sky-50 border border-sky-200 rounded-2xl px-4 py-3 text-center min-w-[110px]">
+          <div class="text-xs font-semibold text-sky-700">前十大主題</div>
+          <div class="text-2xl font-black text-sky-700">
+            <span id="revealed-count">0</span><span id="total-topics-count" class="text-sm font-medium text-slate-400"> / 11</span>
+          </div>
+        </div>
+
+        <!-- 自訂/重設按鈕 -->
+        <div class="flex flex-col gap-2">
+          <button onclick="openConfigModal()" title="自訂或編輯題目" class="px-3 py-1.5 text-xs font-semibold bg-white border border-sky-300 hover:bg-sky-50 text-sky-700 rounded-xl transition shadow-sm flex items-center justify-center gap-1">
+            ⚙️ 自訂題目
+          </button>
+          <button onclick="resetGame()" title="重新開始猜題" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition flex items-center justify-center gap-1">
+            🔄 重新開始
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 遊戲說明條 -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-white/70 backdrop-blur rounded-2xl border border-sky-100 mb-6 text-xs text-slate-600">
+      <div class="flex items-center gap-2">
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+        </span>
+        <span>規則：計分統計至<strong>第十名</strong>（含並列共 11 個主題），<strong>第 1 名得 10 分</strong>，依名次遞減至<strong>第 10 名得 1 分</strong>！下方還有 8 大深度話題的「特別遺珠區」！</span>
+      </div>
+      <div class="text-sky-600 font-medium">
+        ❄️ 北風靈氣加持中
+      </div>
+    </div>
+
+    <!-- 前十大主題卡片網格 (含並列共 11 張) -->
+    <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+      <!-- 由 JavaScript 動態生成 11 張卡片 -->
+    </div>
+
+    <!-- 特別遺珠區 (12-15名 + 深層私房話題，共 8 項) -->
+    <section class="mt-12 bg-white/80 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-rose-200/80 shadow-xl shadow-rose-100/50">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-rose-100">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-400 to-pink-300 text-white flex items-center justify-center text-2xl shadow-md shadow-rose-200">
+            💎
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-slate-800 flex items-center gap-2">
+              特別遺珠區．深層私房話題
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold border border-rose-200">共 8 大私房心聲</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              收錄統計第 12～15 名話題，以及未入前十榜但直擊靈魂的親師深層心聲！
+            </p>
+          </div>
+        </div>
+        <div class="text-xs text-rose-600 font-semibold bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 self-start sm:self-auto flex items-center gap-1">
+          <span>✨ 點擊卡片解鎖隱藏心聲</span>
+        </div>
+      </div>
+
+      <!-- 8 張遺珠卡片網格 -->
+      <div id="pearls-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 由 JavaScript 動態生成 8 張遺珠卡片 -->
+      </div>
+    </section>
+
+    <!-- 完成通關祝賀橫幅 (前十名 11 個全揭曉時顯示) -->
+    <div id="victory-banner" class="hidden mt-10 p-8 bg-gradient-to-r from-sky-500 via-teal-500 to-blue-600 text-white rounded-3xl shadow-2xl text-center relative overflow-hidden">
+      <div class="relative z-10 max-w-xl mx-auto">
+        <div class="text-4xl mb-2">🎉 呼呼！前十大主題全數解鎖！ 🎉</div>
+        <h2 class="text-2xl font-black mb-2">恭喜完成「晤談主題排行榜」探索！</h2>
+        <p class="text-sky-100 text-sm mb-5">
+          滿分 58 分！你掌握了家長最掛心的前十大核心困擾話題。有了這份痛點地圖，下階段討論更有深度與共鳴！也別忘了看看下方直擊靈魂的「特別遺珠區」喔！
+        </p>
+        <button onclick="resetGame()" class="px-6 py-2.5 bg-white text-sky-700 hover:bg-sky-50 font-bold rounded-2xl shadow-lg transition transform hover:scale-105">
+          🌬️ 再玩一次 / 重新演練
+        </button>
+      </div>
+      <!-- 裝飾背景光環 -->
+      <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -left-10 -top-10 w-48 h-48 bg-teal-300/30 rounded-full blur-2xl pointer-events-none"></div>
+    </div>
+
+  </div>
+
+  <!-- 單張主題揭曉彈跳視窗 (Modal) -->
+  <div id="reveal-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+    <div id="modal-box" class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border-2 border-sky-300 transform scale-90 transition-transform duration-300 relative overflow-hidden">
+      
+      <!-- 頂部裝飾背景風紋 -->
+      <div id="modal-top-bar" class="absolute top-0 right-0 left-0 h-2 bg-gradient-to-r from-sky-400 via-teal-400 to-blue-500"></div>
+      <div class="absolute -right-12 -top-12 w-32 h-32 bg-sky-100 rounded-full blur-xl pointer-events-none"></div>
+
+      <!-- 關閉按鈕 -->
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold transition">
+        ✕
+      </button>
+
+      <!-- 彈窗內容 -->
+      <div class="text-center">
+        <!-- 徽章與得分 -->
+        <div class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-black text-sm px-4 py-1.5 rounded-full shadow-md mb-4" id="modal-points-badge">
+          ✨ 獲得 +10 分！
+        </div>
+
+        <!-- 主視覺 Icon -->
+        <div id="modal-icon-container" class="w-20 h-20 mx-auto rounded-3xl bg-sky-100 border-2 border-sky-200 flex items-center justify-center text-4xl shadow-inner mb-4">
+          🌟
+        </div>
+
+        <!-- 名次與標題 -->
+        <div id="modal-rank-label" class="text-xs font-bold text-sky-600 tracking-widest uppercase mb-1">
+          TOP 1 晤談主題排行榜
+        </div>
+        <h3 id="modal-title" class="text-2xl font-black text-slate-800 mb-3">
+          一起發現孩子的優勢、亮點、進步
+        </h3>
+
+        <!-- 輔助說明文字 (偏困擾方向) -->
+        <div class="bg-sky-50/80 border border-sky-200/80 rounded-2xl p-4 text-left mb-5">
+          <div class="text-xs font-bold text-sky-800 mb-1.5 flex items-center gap-1.5">
+            <span>💭 戳中家長心聲的常見困擾：</span>
+          </div>
+          <p id="modal-desc" class="text-xs md:text-sm text-slate-700 leading-relaxed font-medium">
+            說明文字
+          </p>
+        </div>
+
+        <!-- 北風精靈點評 -->
+        <div class="flex items-center gap-3 bg-gradient-to-r from-cyan-50 to-sky-100 p-3 rounded-2xl border border-sky-200 text-left mb-5">
+          <div class="text-2xl">🌬️</div>
+          <div class="text-xs text-sky-900 leading-snug" id="modal-mascot-speech">
+            北風精靈點評
+          </div>
+        </div>
+
+        <button onclick="closeModal()" id="modal-btn" class="w-full py-3 bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white font-bold rounded-2xl shadow-lg shadow-sky-300/50 transition transform hover:scale-[1.02]">
+          我知道了！繼續翻開 ➜
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 自訂題目視窗 (Modal) -->
+  <div id="config-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 max-h-[90vh] flex flex-col shadow-2xl border border-sky-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800">⚙️ 自訂 / 編輯前十大晤談主題</h3>
+          <p class="text-xs text-slate-500">可直接微調各名次的主題名稱與困擾說明</p>
+        </div>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+      </div>
+
+      <div class="overflow-y-auto flex-1 pr-2 space-y-3" id="config-inputs-container">
+        <!-- JS 動態填入輸入框 -->
+      </div>
+
+      <div class="pt-4 border-t border-slate-200 flex items-center justify-between mt-4">
+        <button onclick="restoreDefaultTopics()" class="px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition">
+          恢復預設統計榜單
+        </button>
+        <div class="flex gap-2">
+          <button onclick="closeConfigModal()" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-xl transition">
+            取消
+          </button>
+          <button onclick="saveCustomTopics()" class="px-5 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-md transition">
+            儲存並套用
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 慶祝彩帶畫布 Canvas -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <script>
+    /* ==============================================================
+       1. 統計前十大晤談主題（共 11 項，含並列名次）
+          分數依名次遞減：11 - rank 分（#1 得 10分、#10 得 1分）
+       ============================================================== */
+    const DEFAULT_TOPICS = [
+      {
+        id: "t1",
+        rank: 1,
+        rankText: "#1",
+        title: "一起發現孩子的優勢、亮點、進步",
+        points: 10,
+        icon: "🌟",
+        desc: "「每天在家看到的幾乎都是缺點——拖延、滑手機、頂嘴，看到成績單就血壓飆高... 其實爸媽好想知道：孩子在學校到底有什麼優勢？他有在進步嗎？有沒有我們在家沒看到的發光點？到底該怎麼稱讚肯定他，才不會顯得敷衍或肉麻？」",
+        quote: "北風精靈吹亮微光！原來家長心裡最渴望的，不是挑毛病，而是一起戴上放大鏡，找回孩子的閃光時刻！"
+      },
+      {
+        id: "t2",
+        rank: 2,
+        rankText: "#2",
+        title: "人際關係與同儕互動",
+        points: 9,
+        icon: "🤝",
+        desc: "「下課他到底有沒有朋友？會不會常一個人落單發呆？」「回家常抱怨『同學都不跟我玩』，或是被小圈圈排擠、遇到言語冷嘲熱諷。爸媽想插手又怕孩子被貼標籤，不插手又看得心疼到睡不著覺...」",
+        quote: "友誼是孩子的微氣候！學校裡的人際冷暖，牽動著家長一顆懸在半空的心～"
+      },
+      {
+        id: "t3",
+        rank: 3,
+        rankText: "#3",
+        title: "情緒與壓力",
+        points: 8,
+        icon: "🌊",
+        desc: "「遇到難題就說『反正我就是爛』，或稍微唸兩句就暴怒甩門、哭鬧、鎖在房裡冷戰... 孩子的壓力到底哪裡來？明明沒給他太大要求，他卻焦慮緊繃得像個未爆彈，大人怎麼說都像踩到地雷！」",
+        quote: "情緒像北風呼呼吹！有時不是孩子故意唱反調，而是他心裡的壓力鍋快要炸裂啦！"
+      },
+      {
+        id: "t4",
+        rank: 4,
+        rankText: "#4",
+        title: "親師如何系統合作",
+        points: 7,
+        icon: "🔗",
+        desc: "「在家一套、在學校一套，親師要求步調不同步，孩子超會鑽漏洞！」「想跟老師反應問題又怕被覺得是大驚小怪或恐龍家長，想求助又不知道老師能幫到哪一步... 到底怎麼合作才不會各吹各的號、累死彼此？」",
+        quote: "親師不是拔河對手，而是同一艘船上的雙槳夥伴！節奏一致才能順風破浪！"
+      },
+      {
+        id: "t5_1",
+        rank: 5,
+        rankText: "#5 並列",
+        title: "孩子的生涯探索",
+        points: 6,
+        icon: "🧭",
+        desc: "「問他以後想做什麼、對什麼有興趣，永遠只回『不知道、隨便、都可以』！整天只想放空耍廢，眼看同儕都在探索多元活動，他卻像個無頭蒼蠅。大人想幫忙引導又怕替他做決定，急得像熱鍋上的螞蟻！」",
+        quote: "未來的迷霧好大！孩子看似不在乎的『隨便』，背後往往是不知道從何開始的徬徨～"
+      },
+      {
+        id: "t5_2",
+        rank: 5,
+        rankText: "#5 並列",
+        title: "爸媽角色（到底要支持到什麼程度）",
+        points: 6,
+        icon: "⚖️",
+        desc: "「放手怕他摔得粉身碎骨，抓緊又被嫌過度控制直升機！」「看他碰壁到底該出手救援，還是忍痛讓他承擔後果？管太多被討厭，不管又心驚膽顫，做父母的拿捏界線到底有多難？支持與放手的黃金比例在哪裡？」",
+        quote: "世界上最難拿捏的量尺就是『父母的愛』！多一分怕窒息，少一分怕墜落！"
+      },
+      {
+        id: "t7_1",
+        rank: 7,
+        rankText: "#7 並列",
+        title: "學習習慣和自主性",
+        points: 4,
+        icon: "⏰",
+        desc: "「一定要大人坐在旁邊盯、像鬧鐘一樣催十次才肯動一寸！」「從來不會主動排讀書計畫，桌上課本亂成一團，沒有外力督促就完全停擺，到底要到什麼時候才能學會對自己的學習負責？」",
+        quote: "『催催催、吼吼吼』是每個家庭的日常交響樂！自主性到底怎麼長出來啊～"
+      },
+      {
+        id: "t7_2",
+        rank: 7,
+        rankText: "#7 並列",
+        title: "孩子的升學動向",
+        points: 4,
+        icon: "🗺️",
+        desc: "「面對多元進路、會考學測、體制內外甚至出國評估，資訊多到頭昏眼花！」「我們想選的路跟孩子想走的方向不一樣，或是孩子的成績和目標學校有落差，到底該堅持現實還是守護孩子的夢想？」",
+        quote: "升學就像十字路口，指標越多越讓人心慌！需要親師一起攤開地圖好好導航！"
+      },
+      {
+        id: "t9",
+        rank: 9,
+        rankText: "#9",
+        title: "自主學習的安排與成果",
+        points: 2,
+        icon: "🌱",
+        desc: "「學校給了自主學習的時間，結果孩子都在發呆、看影片，或計畫寫得天花亂墜，最後交出的成果卻草草收尾？大人想從旁協助又不懂他的主題，到底怎麼陪伴孩子完成有深度又有成就感的自主專案？」",
+        quote: "自主學習不是『放生學習』！從點子到成果，中間卡關需要適時的暖風推一把！"
+      },
+      {
+        id: "t10_1",
+        rank: 10,
+        rankText: "#10 並列",
+        title: "親子互動溝通",
+        points: 1,
+        icon: "💬",
+        desc: "「現在講話超容易擦槍走火！關心一句『今天在學校好嗎？』只換來冷冰冰的『還好、沒怎樣』，再多問一句就翻白眼『你好煩喔！』... 以前黏踢踢的孩子，現在像隔了一道防護罩，話不投機半句多！」",
+        quote: "明明滿滿的愛，說出口卻變成刺蝟的針！親子的溝通頻道到底怎麼重新對焦？"
+      },
+      {
+        id: "t10_2",
+        rank: 10,
+        rankText: "#10 並列",
+        title: "孩子的生活習慣(作息、金錢....)",
+        points: 1,
+        icon: "🛌",
+        desc: "「每天晚上摸到半夜一兩點不睡，隔天早上叫起床像拖死豬！」「零用錢一拿到就亂花買沒用的東西、記帳記一天就放棄，房間跟垃圾掩埋場一樣，生活習慣混亂到大人看了就頭痛，講到嘴角全沫還是原形畢露！」",
+        quote: "日常生活的一地雞毛，往往是親師對話最接地氣、最容易引爆家庭大戰的小火苗！"
+      }
+    ];
+
+    /* ==============================================================
+       特別遺珠區資料（12~15名 + 4 大私房話題，共 8 項）
+       ============================================================== */
+    const PEARL_TOPICS = [
+      {
+        id: "p_rank12",
+        tag: "第 12 名遺珠",
+        title: "孩子學習動機",
+        icon: "🔥",
+        desc: "「不是不聰明，就是『不想努力』！對任何學科都提不起勁，覺得讀書沒意義、不知道為誰而學，考差了也一臉無所謂，完全沒有求知慾與好奇心，大人用獎勵或威脅都徹底失效...」",
+        quote: "引擎熄火的孩子最難推動！學習動機的火花，到底要怎麼重新點燃？"
+      },
+      {
+        id: "p_rank13",
+        tag: "第 13 名遺珠",
+        title: "孩子在學校和在家裡表現不一致",
+        icon: "🎭",
+        desc: "「老師稱讚孩子在學校乖巧貼心、樂於助人、是模範生；結果回家一脫鞋就變成小霸王，動輒發脾氣、不做家事、判若兩人！到底哪一個才是真實的他？還是他在學校把所有忍耐的額度都用光了？」",
+        quote: "川劇變臉都沒孩子快！『校園小天使 vs 家中小怪獸』，背後藏著孩子哪些不敢說的心聲？"
+      },
+      {
+        id: "p_rank14",
+        tag: "第 14 名遺珠",
+        title: "讀無界真的適合嗎..",
+        icon: "🚀",
+        desc: "「當初選擇了不一樣的創新/實驗教育道路，但看到孩子適應上的跌跌撞撞，心裡總會浮現問號：『這條路真的適合我的孩子嗎？』『會不會回不去傳統體制？會不會跟同齡孩子差距太大？』焦慮與自我懷疑常常在夜深人靜時敲門...」",
+        quote: "選擇與眾不同的道路本就需要莫大勇氣！每個問號背後，都是父母小心翼翼的守候與深思！"
+      },
+      {
+        id: "p_rank15",
+        tag: "第 15 名遺珠",
+        title: "學業表現、成績",
+        icon: "📝",
+        desc: "「雖然知道成績不是唯一，但看到考卷上的紅字或排名落後，內心還是會漏跳一拍！」「到底該不該補習？要不要加強刷題？明明想當開明的父母，卻總是不自覺被分數綁架，陷入『不在意是假的，太在意又傷感情』的內耗糾結！」",
+        quote: "排在第 15 名正說明了家長看重的是孩子這個『人』！但成績這面鏡子，依舊會不經意擾亂父母的心湖～"
+      },
+      {
+        id: "p_parent",
+        tag: "心靈療癒",
+        title: "家長的教養辛酸血淚史需要被同理",
+        icon: "❤️‍🩹",
+        desc: "「大家都在問孩子怎麼樣、學習如何，但誰來問問爸媽好不好？白天上班被老闆電、晚上回家跟孩子周旋，常常累到在廁所偷哭、懷疑自己是不及格的父母... 晤談時其實好想聽老師說一句：『爸爸媽媽，這陣子辛苦了，你們已經做得很棒了！』」",
+        quote: "呼呼～北風精靈送上最溫柔的擁抱！照顧孩子的同時，大人疲憊的心也需要被深深理解與好好接住！"
+      },
+      {
+        id: "p_love",
+        tag: "青春萌芽",
+        title: "孩子的感情",
+        icon: "💌",
+        desc: "「發現他手機裡跟某個同學傳曖昧訊息、甚至偷偷交往？大人到底該裝作不知道，還是開誠佈公聊？既擔心影響課業受傷被騙，又怕過度盤問讓孩子徹底把感情生活地下化... 青春期情感到底怎麼談？」",
+        quote: "青澀的微風吹動少年心事！少年的情感萌芽不是洪水猛獸，需要像春風一樣溫和地傾聽陪伴～"
+      },
+      {
+        id: "p_marriage",
+        tag: "家庭基石",
+        title: "爸媽彼此的關係",
+        icon: "🏡",
+        desc: "「每次要管教小孩，夫妻就先大吵一架！一個堅持原則講紀律、另一個心軟護航充當好人；或者一個全身心投入心力交瘁、另一個像局外人指手畫腳... 育兒分歧成了婚姻最大的磨損源，家庭氣氛好僵硬！」",
+        quote: "孩子的安全感來自父母的同心！夫妻先攜手站穩腳跟、互相體諒，教養這艘大船才不會觸礁！"
+      },
+      {
+        id: "p_public_service",
+        tag: "公民與利他",
+        title: "公眾參與、服務學習與關心他人",
+        icon: "🤲",
+        desc: "「在日益個人化與網路化的生活裡，孩子對班級公共事務、社會議題冷眼旁觀，覺得『事不關己、多管閒事幹嘛？』」「學校規定的志工服務常常只當成『刷時數、蓋章集點』的例行公事，平時很少體察身邊人的辛苦，連家人付出都視為理所當然。到底怎麼帶孩子走出自我小圈圈，體會服務的真諦與利他關懷的溫度？」",
+        quote: "北風精靈吹開小小的窗！從彎腰服務、關心身邊的一草一木開始，孩子的心靈才會真正強大與寬廣！"
+      }
+    ];
+
+    let topics = [];
+    let revealedIds = new Set();
+    let revealedPearls = new Set();
+    let totalScore = 0;
+    let isSoundEnabled = true;
+
+    /* ==============================================================
+       2. Web Audio API 音效生成器 (純程式碼合成音效)
+       ============================================================== */
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playChimeSound(points) {
+      if (!isSoundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const baseFreq = 390 + (points * 25);
+        const notes = [baseFreq, baseFreq * 1.25, baseFreq * 1.5, baseFreq * 2];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = idx === notes.length - 1 ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.07);
+          gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.07);
+          gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + idx * 0.07 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.07 + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.07);
+          osc.stop(ctx.currentTime + idx * 0.07 + 0.5);
+        });
+      } catch (e) {}
+    }
+
+    function playHeartSound() {
+      if (!isSoundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const notes = [440, 554.37, 659.25, 880];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.09);
+          gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.09);
+          gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + idx * 0.09 + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.09 + 0.5);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.09);
+          osc.stop(ctx.currentTime + idx * 0.09 + 0.55);
+        });
+      } catch (e) {}
+    }
+
+    function playVictoryFanfare() {
+      if (!isSoundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const chord = [523.25, 659.25, 783.99, 1046.50];
+        chord.forEach((freq) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 1.2);
+        });
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      isSoundEnabled = !isSoundEnabled;
+      document.getElementById('sound-icon').textContent = isSoundEnabled ? '🔔' : '🔕';
+      document.getElementById('sound-btn').innerHTML = `<span id="sound-icon">${isSoundEnabled ? '🔔' : '🔕'}</span> 音效${isSoundEnabled ? '開' : '關'}`;
+    }
+
+    // Confetti
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let confettiParticles = [];
+    let animationId = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function triggerConfetti(isRose = false) {
+      const colors = isRose 
+        ? ['#fb7185', '#f43f5e', '#fda4af', '#fecdd3', '#f472b6', '#38bdf8']
+        : ['#38bdf8', '#2dd4bf', '#fbbf24', '#f472b6', '#60a5fa', '#a78bfa'];
+      for (let i = 0; i < 65; i++) {
+        confettiParticles.push({
+          x: canvas.width / 2 + (Math.random() * 200 - 100),
+          y: canvas.height * 0.45,
+          vx: (Math.random() - 0.5) * 14,
+          vy: Math.random() * -12 - 5,
+          size: Math.random() * 8 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 10,
+          alpha: 1,
+          gravity: 0.35
+        });
+      }
+      if (!animationId) animateConfetti();
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confettiParticles.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.rotation += p.rotationSpeed;
+        p.alpha -= 0.009;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.restore();
+
+        if (p.alpha <= 0 || p.y > canvas.height) {
+          confettiParticles.splice(idx, 1);
+        }
+      });
+
+      if (confettiParticles.length > 0) {
+        animationId = requestAnimationFrame(animateConfetti);
+      } else {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function createWindParticles() {
+      const container = document.getElementById('wind-particles');
+      container.innerHTML = '';
+      const count = 16;
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'snow-particle text-sky-300/40 select-none';
+        const icons = ['❄', '✧', '༄', '·'];
+        particle.textContent = icons[Math.floor(Math.random() * icons.length)];
+        particle.style.left = `${Math.random() * 100}vw`;
+        particle.style.top = `${Math.random() * 95}vh`;
+        particle.style.fontSize = `${Math.random() * 18 + 12}px`;
+        particle.style.animationDuration = `${Math.random() * 8 + 6}s`;
+        particle.style.animationDelay = `${Math.random() * 5}s`;
+        container.appendChild(particle);
+      }
+    }
+
+    function loadTopics() {
+      const saved = localStorage.getItem('boreas_topics_v4');
+      if (saved) {
+        try {
+          topics = JSON.parse(saved);
+        } catch (e) {
+          topics = [...DEFAULT_TOPICS];
+        }
+      } else {
+        topics = [...DEFAULT_TOPICS];
+      }
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('cards-grid');
+      grid.innerHTML = '';
+
+      topics.forEach((topic) => {
+        const isRevealed = revealedIds.has(topic.id);
+        const card = document.createElement('div');
+        card.id = `card-${topic.id}`;
+
+        if (!isRevealed) {
+          card.className = "frost-card card-locked rounded-3xl p-4 cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[220px]";
+          card.onclick = () => revealTopic(topic.id);
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-xl bg-white/90 border border-sky-300 text-sky-700 font-black text-xs shadow-sm">
+                ${topic.rankText || ('#' + topic.rank)}
+              </span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-800">
+                +${topic.points} 分
+              </span>
+            </div>
+
+            <div class="my-auto text-center py-3">
+              <div class="w-12 h-12 mx-auto rounded-2xl bg-white/70 border border-sky-200 flex items-center justify-center text-xl text-sky-400 mb-2 shadow-inner group-hover:scale-110 transition">
+                🔒
+              </div>
+              <div class="text-xs font-bold text-sky-700 tracking-wider">前十大主題</div>
+              <div class="text-[11px] text-sky-600/70 mt-1">點擊呼風揭曉！</div>
+            </div>
+
+            <div class="text-center pt-2 border-t border-sky-200/50">
+              <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 bg-sky-50 px-2.5 py-1 rounded-full">
+                <span>🌬️ 點開看困擾</span>
+              </span>
+            </div>
+          `;
+        } else {
+          card.className = "frost-card card-revealed rounded-3xl p-4 relative overflow-hidden flex flex-col justify-between min-h-[220px] transition-all";
+          card.onclick = () => showModalDetails(topic);
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-xl bg-sky-500 text-white font-black text-xs shadow-md shadow-sky-200">
+                ${topic.rankText || ('#' + topic.rank)}
+              </span>
+              <span class="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-400 text-white shadow-sm">
+                +${topic.points} 分
+              </span>
+            </div>
+
+            <div class="my-auto py-2">
+              <div class="text-3xl mb-1.5 text-center">${topic.icon || '📌'}</div>
+              <h4 class="text-sm font-black text-slate-800 text-center leading-snug line-clamp-2">
+                ${topic.title}
+              </h4>
+              <p class="text-[11px] text-slate-500 text-center mt-1.5 line-clamp-2">
+                ${topic.desc}
+              </p>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-sky-600">
+              <span class="font-medium text-emerald-600 flex items-center gap-0.5">
+                <span>✓</span> 已解鎖
+              </span>
+              <span class="text-slate-400 hover:text-sky-600 cursor-pointer">
+                再看心聲 ➜
+              </span>
+            </div>
+          `;
+        }
+
+        grid.appendChild(card);
+      });
+
+      updateScoreUI();
+    }
+
+    function renderPearls() {
+      const grid = document.getElementById('pearls-grid');
+      grid.innerHTML = '';
+
+      PEARL_TOPICS.forEach((pearl) => {
+        const isRevealed = revealedPearls.has(pearl.id);
+        const card = document.createElement('div');
+        card.id = `pearl-${pearl.id}`;
+
+        if (!isRevealed) {
+          card.className = "frost-card pearl-locked rounded-3xl p-4 cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[195px]";
+          card.onclick = () => revealPearl(pearl.id);
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full bg-rose-100 border border-rose-300 text-rose-700 font-bold text-xs">
+                💎 ${pearl.tag}
+              </span>
+              <span class="text-[11px] font-bold text-rose-500 bg-white/80 px-2 py-0.5 rounded-full">
+                私房話題
+              </span>
+            </div>
+
+            <div class="my-auto text-center py-2">
+              <div class="text-2xl mb-1 text-rose-400">💌</div>
+              <h4 class="text-xs font-bold text-slate-700">
+                點擊翻開隱藏心聲
+              </h4>
+            </div>
+
+            <div class="text-center pt-2 border-t border-rose-200/50">
+              <span class="text-[11px] font-semibold text-rose-600 bg-rose-50 px-3 py-1 rounded-full">
+                💖 解鎖家長深層心聲
+              </span>
+            </div>
+          `;
+        } else {
+          card.className = "frost-card pearl-revealed rounded-3xl p-4 relative overflow-hidden flex flex-col justify-between min-h-[195px] transition-all";
+          card.onclick = () => showModalDetails(pearl, false, true);
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full bg-rose-500 text-white font-bold text-xs shadow-sm">
+                💎 ${pearl.tag}
+              </span>
+              <span class="text-xs font-semibold text-emerald-600 flex items-center gap-0.5">
+                <span>✓</span> 已聆聽
+              </span>
+            </div>
+
+            <div class="my-auto py-2">
+              <div class="text-2xl mb-1 text-center">${pearl.icon}</div>
+              <h4 class="text-xs font-black text-rose-900 text-center leading-snug line-clamp-2">
+                ${pearl.title}
+              </h4>
+              <p class="text-[11px] text-slate-600 text-center mt-1 line-clamp-2">
+                ${pearl.desc}
+              </p>
+            </div>
+
+            <div class="pt-2 border-t border-rose-100 flex items-center justify-between text-[11px] text-rose-600">
+              <span class="font-medium text-rose-700">直擊靈魂</span>
+              <span class="hover:underline cursor-pointer">完整閱讀 ➜</span>
+            </div>
+          `;
+        }
+
+        grid.appendChild(card);
+      });
+    }
+
+    function revealTopic(id) {
+      if (revealedIds.has(id)) return;
+      const topic = topics.find(t => t.id === id);
+      if (!topic) return;
+
+      revealedIds.add(id);
+      totalScore += topic.points;
+
+      playChimeSound(topic.points);
+      triggerConfetti();
+      renderCards();
+      showModalDetails(topic, true, false);
+      updateMascotCheer(topic);
+
+      if (revealedIds.size === topics.length) {
+        setTimeout(() => {
+          document.getElementById('victory-banner').classList.remove('hidden');
+          playVictoryFanfare();
+          triggerConfetti();
+        }, 1200);
+      }
+    }
+
+    function revealPearl(id) {
+      const pearl = PEARL_TOPICS.find(p => p.id === id);
+      if (!pearl) return;
+
+      revealedPearls.add(id);
+      playHeartSound();
+      triggerConfetti(true);
+      renderPearls();
+      showModalDetails(pearl, true, true);
+    }
+
+    function showModalDetails(item, isNewReveal = false, isPearl = false) {
+      const modal = document.getElementById('reveal-modal');
+      const box = document.getElementById('modal-box');
+      const topBar = document.getElementById('modal-top-bar');
+      const btn = document.getElementById('modal-btn');
+
+      if (isPearl) {
+        topBar.className = "absolute top-0 right-0 left-0 h-2 bg-gradient-to-r from-rose-400 via-pink-400 to-amber-400";
+        btn.className = "w-full py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-lg shadow-rose-300/50 transition transform hover:scale-[1.02]";
+        document.getElementById('modal-points-badge').textContent = `💎 特別遺珠私房心聲（${item.tag}）`;
+        document.getElementById('modal-points-badge').className = "inline-flex items-center gap-2 bg-gradient-to-r from-rose-400 to-pink-500 text-white font-black text-sm px-4 py-1.5 rounded-full shadow-md mb-4";
+        document.getElementById('modal-rank-label').textContent = `特別遺珠區．深層私房話題`;
+      } else {
+        topBar.className = "absolute top-0 right-0 left-0 h-2 bg-gradient-to-r from-sky-400 via-teal-400 to-blue-500";
+        btn.className = "w-full py-3 bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white font-bold rounded-2xl shadow-lg shadow-sky-300/50 transition transform hover:scale-[1.02]";
+        document.getElementById('modal-points-badge').textContent = isNewReveal 
+          ? `🎉 揭曉成功！直接獲得 +${item.points} 分！`
+          : `✨ ${item.rankText || ('#' + item.rank)} 主題（價值 ${item.points} 分）`;
+        document.getElementById('modal-points-badge').className = "inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-black text-sm px-4 py-1.5 rounded-full shadow-md mb-4";
+        document.getElementById('modal-rank-label').textContent = `前十大晤談主題排行榜`;
+      }
+
+      document.getElementById('modal-icon-container').textContent = item.icon || '📋';
+      document.getElementById('modal-title').textContent = item.title;
+      document.getElementById('modal-desc').textContent = item.desc;
+      document.getElementById('modal-mascot-speech').textContent = `北風精靈：「${item.quote || '掌握這個核心主題，晤談溝通更溫暖高效！'}」`;
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        box.classList.remove('scale-90');
+        box.classList.add('scale-100');
+      }, 10);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('reveal-modal');
+      const box = document.getElementById('modal-box');
+      modal.classList.add('opacity-0');
+      box.classList.remove('scale-100');
+      box.classList.add('scale-90');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 250);
+    }
+
+    function updateScoreUI() {
+      const maxScore = topics.reduce((sum, t) => sum + t.points, 0);
+      document.getElementById('total-score').textContent = totalScore;
+      document.getElementById('max-score').textContent = `/ ${maxScore}分`;
+      document.getElementById('revealed-count').textContent = revealedIds.size;
+      document.getElementById('total-topics-count').textContent = `/ ${topics.length}`;
+    }
+
+    function updateMascotCheer(topic) {
+      const speech = document.getElementById('boreas-dialogue');
+      let cheerText = "";
+      if (topic.rank === 1) {
+        cheerText = `「哇！第一名『${topic.title}』揭曉！原來家長最盼望的是看見孩子的閃光點！直接豪取 ${topic.points} 分！」`;
+      } else if (topic.rank <= 3) {
+        cheerText = `「太準了！前三名的大主題『${topic.title}』已就位，進帳 ${topic.points} 分！」`;
+      } else {
+        cheerText = `「呼呼～『${topic.title}』解鎖！又進帳 ${topic.points} 分，前十大的輪廓越來越清晰了！」`;
+      }
+      speech.innerHTML = `<span>💬 北風精靈：</span>${cheerText}`;
+    }
+
+    function boreasCheer() {
+      triggerConfetti();
+      playChimeSound(8);
+      const quotes = [
+        "「北風學院永遠為你的教育之路送上最溫暖的微風！」",
+        "「第一名竟然是一起找優勢和進步！家長的心真的好柔軟～」",
+        "「呼呼～北風精靈吹一下，靈感馬上來！」",
+        "「親師晤談不是考試，而是一場合作夥伴的同心茶會～」",
+        "「別忘了下方還有特別遺珠區喔，每一個都是直擊靈魂的心酸血淚！」"
+      ];
+      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('boreas-dialogue').innerHTML = `<span>💬 北風精靈：</span>${randomQuote}`;
+    }
+
+    function resetGame() {
+      revealedIds.clear();
+      revealedPearls.clear();
+      totalScore = 0;
+      document.getElementById('victory-banner').classList.add('hidden');
+      document.getElementById('boreas-dialogue').innerHTML = `<span>💬 北風精靈：</span>「呼呼～記憶洗牌！重新開始，看看這次能以多快的節奏揭曉前十大主題！」`;
+      renderCards();
+      renderPearls();
+    }
+
+    function openConfigModal() {
+      const container = document.getElementById('config-inputs-container');
+      container.innerHTML = '';
+
+      topics.forEach((t) => {
+        const item = document.createElement('div');
+        item.className = "p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row gap-3 items-center";
+        item.innerHTML = `
+          <div class="flex items-center gap-2 w-full md:w-36">
+            <span class="w-12 h-8 rounded-xl bg-sky-100 text-sky-700 font-bold flex items-center justify-center text-xs">
+              ${t.rankText || ('#' + t.rank)}
+            </span>
+            <input type="text" id="cfg-icon-${t.id}" value="${t.icon || '📌'}" class="w-10 text-center border border-slate-300 rounded-lg py-1 text-sm" title="自訂圖示 Emoji" />
+            <span class="text-xs font-semibold text-amber-600">${t.points}分</span>
+          </div>
+          <div class="flex-1 w-full">
+            <input type="text" id="cfg-title-${t.id}" value="${t.title}" class="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-sm font-semibold text-slate-800" placeholder="主題名稱" />
+          </div>
+          <div class="flex-[1.5] w-full">
+            <input type="text" id="cfg-desc-${t.id}" value="${t.desc}" class="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-600" placeholder="家長困擾說明" />
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      document.getElementById('config-modal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('config-modal').classList.add('hidden');
+    }
+
+    function saveCustomTopics() {
+      topics.forEach((t) => {
+        const titleInput = document.getElementById(`cfg-title-${t.id}`);
+        const iconInput = document.getElementById(`cfg-icon-${t.id}`);
+        const descInput = document.getElementById(`cfg-desc-${t.id}`);
+
+        if (titleInput && titleInput.value.trim()) t.title = titleInput.value.trim();
+        if (iconInput && iconInput.value.trim()) t.icon = iconInput.value.trim();
+        if (descInput && descInput.value.trim()) t.desc = descInput.value.trim();
+      });
+
+      localStorage.setItem('boreas_topics_v4', JSON.stringify(topics));
+      closeConfigModal();
+      resetGame();
+      alert("✅ 題目已成功更新並套用！已為您重新開始遊戲。");
+    }
+
+    function restoreDefaultTopics() {
+      if (confirm("確定要恢復成預設的前十大統計排行榜名次與題目嗎？")) {
+        localStorage.removeItem('boreas_topics_v4');
+        topics = JSON.parse(JSON.stringify(DEFAULT_TOPICS));
+        closeConfigModal();
+        resetGame();
+      }
+    }
+
+    // 啟動初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      loadTopics();
+      createWindParticles();
+      renderCards();
+      renderPearls();
+    });
+  </script>
+</body>
+</html>
